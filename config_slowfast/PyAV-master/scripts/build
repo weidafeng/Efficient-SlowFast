@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [[ "$TRAVIS" && ("$TESTSUITE" == "isort" || "$TESTSUITE" == "flake8") ]]; then
+    echo "We don't need to build PyAV for source linting."
+    exit 0
+fi
+
+
+if [[ ! "$_PYAV_ACTIVATED" ]]; then
+    export here="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)"
+    source "$here/activate.sh"
+fi
+
+cd "$PYAV_ROOT"
+
+export PATH="$PYAV_VENV/vendor/$PYAV_LIBRARY_SLUG/bin:$PATH"
+
+
+env | grep PYAV | sort
+echo
+
+echo PKG_CONFIG_PATH: $PKG_CONFIG_PATH
+echo LD_LIBRARY_PATH: $LD_LIBRARY_PATH
+echo
+
+which ffmpeg || exit 2
+ffmpeg -version || exit 3
+echo
+
+"$PYAV_PYTHON" setup.py config build_ext --inplace || exit 1

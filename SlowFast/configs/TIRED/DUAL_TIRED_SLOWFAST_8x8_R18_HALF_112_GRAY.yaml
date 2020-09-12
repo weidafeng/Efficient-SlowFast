@@ -1,0 +1,92 @@
+# 112 * 112, 16 * 2
+# resnet 18
+# half face
+# slowfast
+# train script
+# python /data1/SlowFast_tensorboard/SlowFast/tools/run_net.py  --cfg /data1/SlowFast_tensorboard/SlowFast/configs/WHEEL/TIRED_SLOWFAST_8x8_R50_112.yaml NUM_GPUS 4 TRAIN.BATCH_SIZE 256 DATA_LOADER.NUM_WORKERS 8  DATA.TRAIN_CROP_SIZE 112 MODEL.MODEL_NAME SlowFast RESNET.SPATIAL_STRIDES "[[1, 1], [2, 2], [2, 2], [1, 1]]"
+
+TRAIN:
+  ENABLE: True
+  DATASET: Wheel_GRAY
+  BATCH_SIZE: 64
+  EVAL_PERIOD: 1
+  CHECKPOINT_PERIOD: 1
+  AUTO_RESUME: True
+  TOPK: 1
+DATA:
+  NUM_FRAMES: 16
+  SAMPLING_RATE: 2
+  TRAIN_CROP_SIZE: 112
+  TEST_CROP_SIZE: 128
+  INPUT_CHANNEL_NUM: [1, 1]  # GRAY
+  MEAN: [0.45]
+  STD: [0.225]
+  HALF_FACE: True  # half face
+  PATH_TO_TRAIN_DATA_TXT: "/data1/ADAS/tired_detection/data2/non_duplicate_train_data_0522_half_img.txt"
+  PATH_TO_VAL_DATA_TXT: "/data1/ADAS/tired_detection/data2/non_duplicate_test_data_0528_half_img_no_sample_class.txt"
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 7
+RESNET:
+  ZERO_INIT_FINAL_BN: True
+  WIDTH_PER_GROUP: 64
+  NUM_GROUPS: 1
+  DEPTH: 18
+  TRANS_FUNC: bottleneck_transform
+  STRIDE_1X1: False
+  NUM_BLOCK_TEMP_KERNEL: [[2, 2], [2, 2], [2, 2], [2, 2]]
+  SPATIAL_STRIDES: [[1, 1], [1, 1], [2, 2], [2, 2]]
+  SPATIAL_DILATIONS: [[1, 1], [1, 1], [1, 1], [1, 1]]
+NONLOCAL:
+  LOCATION: [[[], []], [[], []], [[], []], [[], []]]
+  GROUP: [[1, 1], [1, 1], [1, 1], [1, 1]]
+  INSTANTIATION: dot_product
+BN:
+  USE_PRECISE_STATS: True
+  NUM_BATCHES_PRECISE: 200  # wdf fix from 200
+SOLVER:
+  BASE_LR: 0.01  # wdf fix from 0.1
+  LR_POLICY: cosine # steps_with_relative_lrs  # wdf fix from cosine
+#  STEPS: [10, 20, 25]
+#  LRS: [0.1, 0.01, 0.001, 0.0005]
+  MAX_EPOCH: 40
+  MOMENTUM: 0.9
+  WEIGHT_DECAY: 1e-4
+  WARMUP_EPOCHS: 3.0
+  WARMUP_START_LR: 0.01
+  OPTIMIZING_METHOD: sgd
+MODEL:
+  NUM_CLASSES: 3
+  ARCH: slowfast
+  MODEL_NAME: SlowFastDualAttention
+  LOSS_FUNC: cross_entropy
+  DROPOUT_RATE: 0.5
+TEST:
+  ENABLE: True
+  DATASET: Wheel_GRAY
+  BATCH_SIZE: 128
+  # wdf-add
+  NUM_ENSEMBLE_VIEWS: 10
+  NUM_SPATIAL_CROPS: 1
+
+DATA_LOADER:
+  NUM_WORKERS: 4
+  PIN_MEMORY: True
+
+# wdf-add
+TENSORBOARD:
+  ENABLE: True
+  MODEL_VIS:
+    ENABLE: False
+  HISTOGRAM:
+    ENABLE: False
+  CONFUSION_MATRIX:
+    ENABLE: False
+
+LOG_MODEL_INFO: True  # log model
+NUM_GPUS: 1
+NUM_SHARDS: 1
+RNG_SEED: 0
+OUTPUT_DIR: /data1/ADAS_TIRED_SLOWFAST_R18_DUAL

@@ -1,0 +1,255 @@
+name: tests
+
+on: [push, pull_request]
+
+jobs:
+
+
+  style:
+
+    name: "${{ matrix.config.suite }}"
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        config:
+          - {suite: isort}
+          - {suite: flake8}
+
+    env:
+      PYAV_PYTHON: python3
+      PYAV_LIBRARY: ffmpeg-4.2 # doesn't matter
+
+    steps:
+
+      - uses: actions/checkout@v2
+        name: Checkout
+
+      - name: Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Environment
+        run: env | sort
+
+      - name: Packages
+        run: |
+          . scripts/activate.sh
+          # A bit of a hack that we can get away with this.
+          python -m pip install ${{ matrix.config.suite }}
+
+      - name: "${{ matrix.config.suite }}"
+        run: |
+          . scripts/activate.sh
+          ./scripts/test ${{ matrix.config.suite }}
+
+
+  nix:
+
+    name: "py-${{ matrix.config.python }} lib-${{ matrix.config.ffmpeg }} ${{matrix.config.os}}"
+
+    runs-on: ${{ matrix.config.os }}
+
+    strategy:
+      matrix:
+        config:
+          - {os: ubuntu-latest, python: 3.7, ffmpeg: "4.2", extras: true}
+          - {os: ubuntu-latest, python: 3.7, ffmpeg: "4.1"}
+          - {os: ubuntu-latest, python: 3.7, ffmpeg: "4.0"}
+          - {os: ubuntu-latest, python: pypy3, ffmpeg: "4.2"}
+          #- {os: macos-latest,  python: 3.7, ffmpeg: "4.2"}
+
+    env:
+      PYAV_PYTHON: python${{ matrix.config.python }}
+      PYAV_LIBRARY: ffmpeg-${{ matrix.config.ffmpeg }}
+
+    steps:
+
+    - uses: actions/checkout@v2
+      name: Checkout
+
+    - name: Python ${{ matrix.config.python }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.config.python }}
+
+    - name: OS Packages
+      run: |
+        case ${{ matrix.config.os }} in
+          ubuntu-latest)
+            sudo apt-get update
+            sudo apt-get install autoconf automake build-essential cmake \
+              libtool mercurial pkg-config texinfo wget yasm zlib1g-dev
+            sudo apt-get install libass-dev libfreetype6-dev libjpeg-dev \
+              libtheora-dev libvorbis-dev libx264-dev
+            if [[ "${{ matrix.config.extras }}" ]]; then
+              sudo apt-get install doxygen
+            fi
+            ;;
+          macos-latest)
+            brew update
+            brew install automake libtool nasm pkg-config shtool texi2html wget
+            brew install libass libjpeg libpng libvorbis libvpx opus theora x264
+            ;;
+        esac
+
+    - name: Pip and FFmpeg
+      run: |
+        . scripts/activate.sh ffmpeg-${{ matrix.config.ffmpeg }}
+        scripts/build-deps
+
+    - name: Build
+      run: |
+        . scripts/activate.sh ffmpeg-${{ matrix.config.ffmpeg }}
+        scripts/build
+
+    - name: Test
+      run: |
+        . scripts/activate.sh ffmpeg-${{ matrix.config.ffmpeg }}
+        python -m av --version # Assert it can import.
+        scripts/test
+
+    - name: Docs
+      if: matrix.config.extras
+      run: |
+        . scripts/activate.sh ffmpeg-${{ matrix.config.ffmpeg }}
+        make -C docs html
+
+    - name: Doctest
+      if: matrix.config.extras
+      run: |
+        . scripts/activate.sh ffmpeg-${{ matrix.config.ffmpeg }}
+        scripts/test doctest
+
+    - name: Examples
+      if: matrix.config.extras
+      run: |
+        . scripts/activate.sh ffmpeg-${{ matrix.config.ffmpeg }}
+        scripts/test examples
+
+    - name: Source Distribution
+      if: matrix.config.extras
+      run: |
+        . scripts/activate.sh ffmpeg-${{ matrix.config.ffmpeg }}
+        scripts/test sdist
+
+  windows:
+
+    name: "py-${{ matrix.config.python }} lib-${{ matrix.config.ffmpeg }} ${{matrix.config.os}}"
+
+    runs-on: ${{ matrix.config.os }}
+
+    strategy:
+      matrix:
+        config:
+          - {os: windows-latest, python: 3.7, ffmpeg: "4.2"}
+          - {os: windows-latest, python: 3.7, ffmpeg: "4.1"}
+          - {os: windows-latest, python: 3.7, ffmpeg: "4.0"}
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Conda
+      shell: bash
+      run: |
+        . $CONDA/etc/profile.d/conda.sh
+        conda config --set always_yes true
+        conda config --add channels conda-forge
+        conda create -q -n pyav \
+          cython \
+          ffmpeg=${{ matrix.config.ffmpeg }} \
+          numpy \
+          pillow \
+          python=${{ matrix.config.python }} \
+          setuptools
+
+    - name: Build
+      shell: bash
+      run: |
+        . $CONDA/etc/profile.d/conda.sh
+        conda activate pyav
+        python setup.py build_ext --inplace --ffmpeg-dir=$CONDA_PREFIX/Library
+
+    - name: Test
+      shell: bash
+      run: |
+        . $CONDA/etc/profile.d/conda.sh
+        conda activate pyav
+        python setup.py test
+
+  package-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Build source package
+        run: |
+          pip install cython
+          python scripts/fetch-ffmpeg /tmp/vendor
+          PKG_CONFIG_PATH=/tmp/vendor/lib/pkgconfig make build
+          python setup.py sdist
+      - name: Upload source package
+        uses: actions/upload-artifact@v1
+        with:
+          name: dist
+          path: dist/
+
+  package-wheel:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Install packages
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew update
+          brew install pkg-config
+      - name: Build wheels
+        env:
+          CIBW_BEFORE_BUILD: pip install cython && python scripts/fetch-ffmpeg /tmp/vendor
+          CIBW_BEFORE_BUILD_WINDOWS: pip install cython && python scripts\fetch-ffmpeg C:\cibw\vendor
+          CIBW_ENVIRONMENT_LINUX: LD_LIBRARY_PATH=/tmp/vendor/lib:$LD_LIBRARY_PATH PKG_CONFIG_PATH=/tmp/vendor/lib/pkgconfig
+          CIBW_ENVIRONMENT_MACOS: DYLD_LIBRARY_PATH=/tmp/vendor/lib:$DYLD_LIBRARY_PATH PKG_CONFIG_PATH=/tmp/vendor/lib/pkgconfig LDFLAGS=-headerpad_max_install_names
+          CIBW_ENVIRONMENT_WINDOWS: CL="/IC:\cibw\vendor\include" LINK="/LIBPATH:C:\cibw\vendor\lib"
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: python scripts/inject-dll {wheel} {dest_dir} C:\cibw\vendor\bin
+          CIBW_SKIP: cp27-* pp27-* pp36-win*
+          CIBW_TEST_COMMAND: mv {project}/av {project}/av.disabled && python -m unittest discover -t {project} -s tests && mv {project}/av.disabled {project}/av
+          # disable test suite on OS X, the SSL config seems broken
+          CIBW_TEST_COMMAND_MACOS: true
+          CIBW_TEST_REQUIRES: numpy
+        run: |
+          pip install cibuildwheel
+          cibuildwheel --output-dir dist
+        shell: bash
+      - name: Upload wheels
+        uses: actions/upload-artifact@v1
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [package-source, package-wheel]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
