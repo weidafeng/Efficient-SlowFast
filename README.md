@@ -1,4 +1,4 @@
-# Efficient Dual Attention SlowFast Networks for Video Action Recognition
+# Efficient dual attention SlowFast networks for video action recognition
 
 Dafeng Wei,  Ye Tian,  Liqing Wei,  Hong Zhong,   Siqian Chen,   **Shiliang Pu,    Hongtao Lu** (Corresponding authors)
 
@@ -7,7 +7,7 @@ Dafeng Wei,  Ye Tian,  Liqing Wei,  Hong Zhong,   Siqian Chen,   **Shiliang Pu, 
 ## Abstract
 
 ```bash
-Video data mainly differ in temporal dimension compared with static image data. Various video action recognition networks choose two-stream models to learn spatial and temporal information separately and fuse them to further improve performance. We proposed a cross-modality dual attention fusion module named CMDA to explicitly exchange spatial-temporal information between two pathways in two-stream SlowFast networks. Besides, considering the computational complexity of these heavy models and the low accuracy of existing lightweight models, we proposed several two-stream efficient SlowFast networks based on well-designed efficient 2D networks, such as GhostNet, ShuffleNetV2 and so on. Experiments demonstrate that our proposed fusion model CMDA improves the performance of SlowFast, and our efficient two-stream models archive a consistent increase in accuracy with a little overhead in FLOPs. Our code and pre-trained models will be made available soon. % at https://github.com/weidafeng/Efficient-SlowFast.
+Video data mainly differ in temporal dimension compared with static image data. Various video action recognition networks choose two-stream models to learn spatial and temporal information separately and fuse them to further improve performance. We proposed a cross-modality dual attention fusion module named CMDA to explicitly exchange spatial–temporal information between two pathways in two-stream SlowFast networks. Besides, considering the computational complexity of these heavy models and the low accuracy of existing lightweight models, we proposed several two-stream efficient SlowFast networks based on well- designed efficient 2D networks, such as GhostNet, ShuffleNetV2 and so on. Experiments demonstrate that our proposed fusion model CMDA improves the performance of SlowFast, and our efficient two-stream models achieve a consistent increase in accuracy with a little overhead in FLOPs. Our code and pre-trained models will be made available at https://github.com/weidafeng/Efficient-SlowFast
 ```
 
 
@@ -103,11 +103,11 @@ $ bash wdf_install_slowfast.sh
 
 
 
-## Supproted Models
+## Supproted Models and Pretrained Checkpoints
 
-| Model Name            | Hyper-Parameters                                  | Notes |
+| Model Name            | Hyper-Parameters                                  | Checkpoints |
 | --------------------- | ------------------------------------------------- | ----- |
-| SlowFastDualAttention | Same as SlowFast, including ALPHA, BETA_INV, etc. |       |
+| SlowFastDualAttention | Same as SlowFast, including ALPHA, BETA_INV, etc. | [BaiduYun(Password: kqqd)](https://pan.baidu.com/s/1k5tuqXz_4QQibgLHWm5muQ)|
 | SlowFastShuffleNet    | Width=[1.0, 1.5, 2.0] , Groups=[1, 3]             |       |
 | SlowFastShuffleNetV2  | Width=[0.25, 0.5, 1.0, 1.5, 2.0]                  |       |
 | SlowFastMoibleNetV2   | Width=[0.5, 0.7, 1.0, 2.0]                        |       |
