@@ -1,18 +1,19 @@
 # Efficient dual attention SlowFast networks for video action recognition
 
-Dafeng Wei,  Ye Tian,  Liqing Wei,  Hong Zhong,   Siqian Chen,   **Shiliang Pu,    Hongtao Lu** (Corresponding authors)
+Dafeng Wei,  Ye Tian,  Liqing Wei,  Hong Zhong,   Siqian Chen,   **Shiliang Pu,  Hongtao Lu** (Corresponding authors)
 
 
 
 ## Abstract
 
-```bash
 Video data mainly differ in temporal dimension compared with static image data. Various video action recognition networks choose two-stream models to learn spatial and temporal information separately and fuse them to further improve performance. We proposed a cross-modality dual attention fusion module named CMDA to explicitly exchange spatial–temporal information between two pathways in two-stream SlowFast networks. Besides, considering the computational complexity of these heavy models and the low accuracy of existing lightweight models, we proposed several two-stream efficient SlowFast networks based on well- designed efficient 2D networks, such as GhostNet, ShuffleNetV2 and so on. Experiments demonstrate that our proposed fusion model CMDA improves the performance of SlowFast, and our efficient two-stream models achieve a consistent increase in accuracy with a little overhead in FLOPs. Our code and pre-trained models will be made available at https://github.com/weidafeng/Efficient-SlowFast
-```
+
 
 
 
 ## Installation
+
+Please note that the codebase is rather rough, I have been particularly busy with work recently, I will refactor the code when I have time afterwards, if you have any questions, please feel free to contact me.
 
 You can follow the official installation tutorial of [SlowFast](https://github.com/facebookresearch/SlowFast) and [Efficient-3DCNNs](https://github.com/okankop/Efficient-3DCNNs).
 Or you can use the codes that I have configured for one-click installation [wdf_install_slowfast.sh](wdf_install_slowfast.sh)(**recommand**).
@@ -34,11 +35,11 @@ $ tree -L 2 /data1/SlowFast_vis_0709/    # root directory of the SlowFast
 ├── SlowFast
     ├── build
     ├── CODE_OF_CONDUCT.md
-    ├── configs							# configs of each model, include Jester and Kinetics
+    ├── configs						# configs of each model, include Jester and Kinetics
     ├── CONTRIBUTING.md
-    ├── demo							# video demo, 1) input a video, 2) select a model, 3) predict and output a result video
+    ├── demo						# video demo, 1) input a video, 2) select a model, 3) predict and output a result video
     ├── GETTING_STARTED.md
-    ├── INSTALL.md						# official install tutorial
+    ├── INSTALL.md					# official install tutorial
     ├── LICENSE
     ├── linter.sh
     ├── MODEL_ZOO.md
@@ -46,11 +47,11 @@ $ tree -L 2 /data1/SlowFast_vis_0709/    # root directory of the SlowFast
     ├── README.md
     ├── setup.cfg
     ├── setup.py
-    ├── slowfast						# main code
+    ├── slowfast					# main code
     ├── slowfast.egg-info
     ├── tools
     ├── wdf_all_run_scripts				# scripts used to train on AI-PLATFORM
-    ├── wdf_install_slowfast.sh			# wdf's install script (recommand)
+    ├── wdf_install_slowfast.sh				# wdf's install script (recommand)
     └── wdf_visualization				# grad-cam visiualization
 
 ```
@@ -73,13 +74,13 @@ $tree -L 1 /data1/Efficient-3DCNNs/     # root directionary of the Efficient-3D 
 ├── __pycache__
 ├── README.md
 ├── results-mobilenetv2-w1				# wdf trained models on kinetics-400
-├── results-shufflenetv2-w025			# wdf trained models on kinetics-400
+├── results-shufflenetv2-w025				# wdf trained models on kinetics-400
 ├── results-shufflenet-w2				# wdf trained models on kinetics-400
 ├── results-shufflev2-w1				# wdf trained models on kinetics-400
 ├── results-shufflev2-w2				# wdf trained models on kinetics-400
 ├── run-jester.sh
 ├── run-kinetics.sh
-├── script								# scripts used to train(recommand to read)
+├── script						# scripts used to train(recommand to read)
 ├── spatial_transforms.py
 ├── speed_gpu.py
 ├── target_transforms.py
@@ -105,13 +106,15 @@ $ bash wdf_install_slowfast.sh
 
 ## Supproted Models and Pretrained Checkpoints
 
+We released both our pre-trained models and the baseline models compared in the paper.
+
 | Model Name            | Hyper-Parameters                                  | Checkpoints |
 | --------------------- | ------------------------------------------------- | ----- |
 | SlowFastDualAttention | Same as SlowFast, including ALPHA, BETA_INV, etc. | [BaiduYun(Password: kqqd)](https://pan.baidu.com/s/1k5tuqXz_4QQibgLHWm5muQ)|
-| SlowFastShuffleNet    | Width=[1.0, 1.5, 2.0] , Groups=[1, 3]             |       |
-| SlowFastShuffleNetV2  | Width=[0.25, 0.5, 1.0, 1.5, 2.0]                  |       |
-| SlowFastMoibleNetV2   | Width=[0.5, 0.7, 1.0, 2.0]                        |       |
-| SlowFastGhostNet      | Width=[1.0, 1.5, 2.0]                             |       |
+| SlowFastShuffleNet    | Width=[1.0, 1.5, 2.0] , Groups=[1, 3]             | [BaiduYun(Password: kqqd)](https://pan.baidu.com/s/1k5tuqXz_4QQibgLHWm5muQ)|
+| SlowFastShuffleNetV2  | Width=[0.25, 0.5, 1.0, 1.5, 2.0]                  | [BaiduYun(Password: kqqd)](https://pan.baidu.com/s/1k5tuqXz_4QQibgLHWm5muQ)|
+| SlowFastMoibleNetV2   | Width=[0.5, 0.7, 1.0, 2.0]                        | [BaiduYun(Password: kqqd)](https://pan.baidu.com/s/1k5tuqXz_4QQibgLHWm5muQ)|
+| SlowFastGhostNet      | Width=[1.0, 1.5, 2.0]                             | [BaiduYun(Password: kqqd)](https://pan.baidu.com/s/1k5tuqXz_4QQibgLHWm5muQ)|
 
 
 
@@ -242,6 +245,10 @@ Here you can specify the pretrained model and video path to predict and grenerat
 
 
 ## Pretrained models
+
+We released both our pre-trained models and the baseline models compared in the paper.
+
+[BaiduYun(Password: kqqd)](https://pan.baidu.com/s/1k5tuqXz_4QQibgLHWm5muQ)
 
 **Kinetics-400**
 
